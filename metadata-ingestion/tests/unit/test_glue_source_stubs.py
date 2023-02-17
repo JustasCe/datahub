@@ -4,6 +4,61 @@ from typing import Any, Dict
 
 from botocore.response import StreamingBody
 
+target_database = {
+    "Name": "target-database",
+    "CreateTime": datetime.datetime(2021, 6, 9, 14, 14, 19),
+    "CreateTableDefaultPermissions": [],
+    "TargetDatabase": {
+        "CatalogId": "432143214321",
+        "DatabaseName": "target-database"
+    },
+    "CatalogId": "123412341234",
+}
+get_target_database_response = {"DatabaseList": [target_database]}
+
+target_database_tables = [
+    {
+        "Name": "ids",
+        "DatabaseName": "transactions",
+        "CreateTime": datetime.datetime(2021, 6, 9, 14, 14, 19),
+        "UpdateTime": datetime.datetime(2021, 6, 9, 14, 14, 19),
+        "Retention": 0,
+        "StorageDescriptor": {
+            "Columns": [
+                {
+                    "Name": "id",
+                    "Type": "bigint",
+                    "Comment": ""
+                },
+                {
+                    "Name": "name",
+                    "Type": "string",
+                    "Comment": ""
+                },
+            ],
+            "Location": "s3://target-db-432143214321/transactions",
+            "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+            "OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+            "Compressed": False,
+            "NumberOfBuckets": 0,
+            "SerdeInfo": {
+                "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+            },
+            "SortColumns": [],
+            "StoredAsSubDirectories": False
+        },
+        "TableType": "EXTERNAL_TABLE",
+        "Parameters": {
+            "classification": "parquet"
+        },
+        "CreatedBy": "arn:aws:sts::432143214321:assumed-role/AWSGlueServiceRole/GlueJobRunnerSession",
+        "IsRegisteredWithLakeFormation": False,
+        "CatalogId": "432143214321",
+        "VersionId": "504"
+    }
+]
+get_target_tables_response = {"TableList": target_database_tables}
+
 get_databases_response = {
     "DatabaseList": [
         {

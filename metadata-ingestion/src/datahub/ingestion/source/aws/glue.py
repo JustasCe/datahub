@@ -126,7 +126,7 @@ class GlueSourceConfig(AwsSourceConfig, StatefulIngestionConfigBase):
         description="Whether to ignore unsupported connectors. If disabled, an error will be raised.",
     )
     emit_s3_lineage: bool = Field(
-        default=False, description=" Whether to emit S3-to-Glue lineage."
+        default=False, description="Whether to emit S3-to-Glue lineage."
     )
     glue_s3_lineage_direction: str = Field(
         default="upstream",
@@ -139,6 +139,10 @@ class GlueSourceConfig(AwsSourceConfig, StatefulIngestionConfigBase):
     catalog_id: Optional[str] = Field(
         default=None,
         description="The aws account id where the target glue catalog lives. If None, datahub will ingest glue in aws caller's account.",
+    )
+    ignore_targeting_databases: Optional[bool] = Field(
+        default=False,
+        description="If set to True will ignore databases targeting other databases, useful when ignoring resource links.",
     )
     use_s3_bucket_tags: Optional[bool] = Field(
         default=False,
@@ -680,7 +684,10 @@ class GlueSource(StatefulIngestionSourceBase):
 
             for page in paginator_response:
                 for db in page["DatabaseList"]:
-                    if self.source_config.database_pattern.allowed(db["Name"]):
+                    if (
+                        self.source_config.database_pattern.allowed(db["Name"]) and not
+                        (self.source_config.ignore_targeting_databases and db.get("TargetDatabase") is not None)
+                    ):
                         databases.append(db)
 
             return databases

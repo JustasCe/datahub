@@ -45,8 +45,12 @@ from tests.unit.test_glue_source_stubs import (
     get_object_tagging,
     get_tables_response_1,
     get_tables_response_2,
+    get_target_database_response,
+    get_target_tables_response,
     tables_1,
     tables_2,
+    target_database,
+    target_database_tables,
 )
 
 FROZEN_TIME = "2020-04-14 07:00:00"
@@ -197,6 +201,38 @@ def test_platform_takes_precendence_over_underlying_platform():
         ),
     )
     assert source.platform == "athena"
+
+@pytest.mark.parametrize(
+    "ignore_targeting_database, all_tables_and_databases_result",
+    [
+        (True, ({}, [])),
+        (False, ({"target-database": target_database}, target_database_tables)),
+    ],
+)
+def test_ignore_targeting_databases(ignore_targeting_database, all_tables_and_databases_result):
+    source = GlueSource(
+        ctx=PipelineContext(run_id="glue-source-test"),
+        config=GlueSourceConfig(
+            aws_region="eu-west-1",
+            ignore_targeting_databases=ignore_targeting_database,
+        ),
+    )
+
+    with Stubber(source.glue_client) as glue_stubber:
+        glue_stubber.add_response(
+            "get_databases",
+            get_target_database_response,
+            {},
+        )
+        glue_stubber.add_response(
+            "get_tables",
+            get_target_tables_response,
+            {"DatabaseName": "target-database"},
+        )
+
+        resp = source.get_all_tables_and_databases()
+        print(json.dumps(resp, default=str, indent=4))
+        assert resp == all_tables_and_databases_result
 
 
 def test_underlying_platform_must_be_valid():
